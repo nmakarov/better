@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery.better.js"></script>
+
+<style type="text/css">
+	#wrapper {
+		border: 1px solid #ccc;
+		width: 80%;
+		padding : 20px;
+		margin : 10px;
+	} 
+	#tableToExport {
+		background-color : #eee;
+		margin : 0px;
+	}
+	#tableToExport thead tr {
+		background-color: #cce;
+	}
+	#tableToExport th {
+		padding: 4px 20px;
+		margin : 0px;
+	}
+	#tableToExport td {
+		padding: 2px 20px;
+		margin : 0px;
+	}
+
+	.panel {
+		width:300px;
+		height:200px;
+		background-color:red;
+	}
+</style>
+
+
+<script type="text/javascript">
+
+$(function(){
+
+
+	$.better();
+	$.better.test();
+	$.better.defaults.downloadUrl = 'bouncefile.php';
+
+	// $("#tableToExport").download({filename:'data.csv'});
+	$("#tableToExport").better('download', {filename:'data2.csv'});
+	// $("#tableToExport").test();
+	
+	// by default:
+	// $.better.defaults.panel.returnPanel = false;
+	
+	$("#wrapper").better('panel', {
+		  stickMethod : 'float' // 'abs'
+		, stickH : 'right'
+		, stickV : 'top'
+	}).css('background-color', 'green');
+});
+
+</script>
+
+<h2>Some header</h2>
+<p>some text...</p>
+<div class='elements' id='wrapper'>
+<table id='tableToExport'>
+	<thead>
+	<tr>
+		<th>Name</th>
+		<th>Age</th>
+		<th>Qualified</th>
+	</tr>
+	</thead>
+	<tr>
+		<td>Vasya</td>
+		<td>18</td>
+		<td>Yes</td>
+	</tr>
+	<tr>
+		<td>Petya</td>
+		<td>25</td>
+		<td>No</td>
+	</tr>
+	<tr style='display:none'>
+		<td>Nastya</td>
+		<td>39</td>
+		<td>No</td>
+	</tr>
+</table>
+</div>

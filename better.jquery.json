@@ -1,0 +1,37 @@
+{
+  "name": "better",
+  "title": "jQuery Better Plugins",
+  "description": "A set of jQuery lightweight plugins - download, panel, table etc.",
+  "keywords": [
+    "download",
+    "csv",
+    "table"
+  ],
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Makarov",
+      "email": "nmakarov@gmail.com",
+      "url": "https://github.com/nmakarov"
+  },
+  "maintainers": [
+    {
+      "name": "Nick Makarov",
+      "email": "nmakarov@gmail.com",
+      "url": "https://github.com/nmakarov"
+    }
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/jquery/jquery-color/blob/2.1.2/MIT-LICENSE.txt"
+    },
+    {
+      "type": "GPL",
+      "url": "http://www.gnu.org/licenses/gpl.html"
+    }
+  ],
+  "homepage": "https://github.com/nmakarov/better",
+  "dependencies": {
+    "jquery": ">=1.5"
+  }
+}
