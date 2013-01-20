@@ -10,7 +10,7 @@ Trick the browser to download anything prepared by javascript or even a table
 
 ### Quick start
 
-~~~
+~~~javascript
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="jquery.better.js"></script>
 
@@ -30,12 +30,17 @@ Trick the browser to download anything prepared by javascript or even a table
 
 Might be specified as an options hash or individually by `$.better.defaults.*`
 
-Option | Default | Meaning
--------+---------+--------
-downloadUrl | bouncefile.php | A php script that does simple thing - returns the specified data to the browser setting a filename and a content type.
-downloadType | text/plain | The content type. Most likely, text/csv will be used
-downloadFilename | somefile.txt | A required filename
-
+~~~
+Option           | Default        | Meaning
+-----------------+----------------+-----------------------------------------------------
+downloadUrl      | bouncefile.php | A php script that does simple thing - returns 
+                 |                | the specified data to the browser setting 
+                 |                | a filename and a content type.
+                 |                |
+downloadType     | text/plain     | The content type. Most likely, text/csv will be used
+                 |                |
+downloadFilename | somefile.txt   | A required filename
+~~~
 
 
 
