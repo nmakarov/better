@@ -108,13 +108,54 @@
 		}
 	});
 
+	var transform = function($panel, matrix) {
+		$panel.css({
+			position : 'absolute'
+			, top : matrix.pivotY
+			, left : matrix.pivotX
+		});
+	}
+
+
 	$.better.plugins.panel = function (that, options) {
 		var $objects = that
 			, ret = [];
+
+
 		that.each(function(){
 			var $container = $(this)
-				, $panel = $("<div />", {class:'panel',text1:'abc'});
+				, $panel = options.panel || $("<div />", {class:'panel'})
+				, parentWidth = $container.outerWidth(false)
+				, parentHeight = $container.outerHeight(true)
+				, parentLeft = $container.offset().left
+				, parentTop = $container.offset().top
+				, offsets = options.offset.split(' ')
+				, offsetTop = offsets[0] || 0
+				, offsetLeft = offsets[1] || 0
+
+				, matrix = {
+					  pivotX : +parentLeft + +offsetLeft
+					, pivotY : +parentTop + +offsetTop
+				};
 			$panel.appendTo($container);
+
+			console.log(matrix);
+
+			// matrix.pivotX = parentLeft + parentWidth;
+			// matrix.pivotY = $container.css('top') + $container.css('height');
+
+
+			if (options.stick.match(/right/))
+				matrix.pivotX += parentWidth;
+
+			if (options.pivot.match(/right/))
+				matrix.pivotX -= $panel.outerWidth(true);
+
+			if (options.pivot.match(/middle/))
+				matrix.pivotY -= $panel.outerHeight(true)/2;
+
+
+			transform($panel, matrix);
 
 			// ret.push($panel.get(0));
 			ret.push($.better.defaults.panel.returnPanel ? $panel.get(0) : $container.get(0));
@@ -124,6 +165,7 @@
 		Array.prototype.push.apply($objects,ret);
 
 		return $objects;
+
 	}
 
 })(jQuery);

@@ -12,6 +12,7 @@
 	#tableToExport {
 		background-color : #eee;
 		margin : 0px;
+		width : 80%;
 	}
 	#tableToExport thead tr {
 		background-color: #cce;
@@ -26,9 +27,9 @@
 	}
 
 	.panel {
-		width:300px;
-		height:200px;
-		background-color:red;
+		width:100px;
+		height:50px;
+		border : 1px solid black;
 	}
 </style>
 
@@ -43,17 +44,22 @@ $(function(){
 	$.better.defaults.downloadUrl = 'bouncefile.php';
 
 	// $("#tableToExport").download({filename:'data.csv'});
-	$("#tableToExport").better('download', {filename:'data2.csv'});
+	// $("#tableToExport").better('download', {filename:'data3.csv'});
 	// $("#tableToExport").test();
 	
 	// by default:
 	// $.better.defaults.panel.returnPanel = false;
 	
 	$("#wrapper").better('panel', {
-		  stickMethod : 'float' // 'abs'
-		, stickH : 'right'
-		, stickV : 'top'
-	}).css('background-color', 'green');
+		  stick : 'top right'
+		, pivot : 'middle right'
+		, offset : '0 -25'
+	});//.css('background-color', 'green');
+	$("#tableToExport").better('panel', {
+		  stick : 'top right'
+		, pivot : 'top right'
+		, offset : '0 0'
+	});//.css('background-color', 'green');
 });
 
 </script>
