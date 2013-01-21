@@ -117,6 +117,14 @@
 	}
 
 
+/*
+Issues
+
+-	$container should have explicit dimensions set, otherwise outer* functions win't work
+-	on resize panels are not following the `stick` guidelines (fix in progress)
+-	see how it works with various box model usage - with borders, margins and padding for container and panel
+ */
+
 	$.better.plugins.panel = function (that, options) {
 		var $objects = that
 			, ret = [];
@@ -139,11 +147,8 @@
 				};
 			$panel.appendTo($container);
 
-			console.log(matrix);
-
-			// matrix.pivotX = parentLeft + parentWidth;
-			// matrix.pivotY = $container.css('top') + $container.css('height');
-
+			if (options.height == 'inherit')
+				$panel.css('height', parentHeight);
 
 			if (options.stick.match(/right/))
 				matrix.pivotX += parentWidth;
@@ -165,7 +170,12 @@
 		Array.prototype.push.apply($objects,ret);
 
 		return $objects;
-
 	}
+
+	$(window).resize(function(event){
+		console.log('Resized');
+	});
+
+
 
 })(jQuery);
