@@ -3,7 +3,7 @@
 <script type="text/javascript" src="jquery.better.js"></script>
 
 <style type="text/css">
-	#wrapper {
+	.wrapper {
 		border: 1px solid #ccc;
 		width: 80%;
 		padding : 20px;
@@ -31,6 +31,10 @@
 		height:50px;
 		border : 1px solid black;
 	}
+
+	input {
+		margin-top:5px;
+	}
 </style>
 
 
@@ -42,9 +46,20 @@ $(function(){
 	$.better();
 	$.better.test();
 	$.better.defaults.downloadUrl = 'bouncefile.php';
+	// $.better.defaults.downloadMethod = 'console';
 
+	$("#downloadTable").click(function(){
+		$("#tableToExport").better('download', {filename:'table.csv'});
+	});
+
+	$("#downloadText").click(function(){
+		$.better.download({
+			  data : $("#textarea").text()
+			, filename : 'text.txt'
+			, type : 'text/plain'
+		});
+	});
 	// $("#tableToExport").download({filename:'data.csv'});
-	// $("#tableToExport").better('download', {filename:'data3.csv'});
 	// $("#tableToExport").test();
 	
 	// by default:
@@ -53,7 +68,7 @@ $(function(){
 	$("#wrapper").better('panel', {
 		  stick : 'top right'
 		, pivot : 'middle right'
-		, offset : '0 -25'
+		// , offset : '0 -25'
 	});//.css('background-color', 'green');
 	$("#tableToExport thead").better('panel', {
 		  stick : 'top right'
@@ -66,17 +81,20 @@ $(function(){
 		, pivot : 'top left'
 		, offset : '0 0'
 		, height : 'inherit'
-		, panel : $("<div />", {style: 'min-width:25px;height:10px;background-color:red;overflow:auto'})
+		, panel : $("<div />", {style: 'width:25px;height:10px;background-color:red;overflow:auto'})
 	});//.css('background-color', 'green');
 
 	$s.text('abcdefg');
+	$s.css({width:'auto'});
+	$.better.plugins.panels.recalc();
+
 });
 
 </script>
 
 <h2>Some header</h2>
 <p>some text...</p>
-<div class='elements' id='wrapper'>
+<div class='elements wrapper' id='wrapper'>
 <table id='tableToExport'>
 	<thead>
 	<tr>
@@ -101,4 +119,16 @@ $(function(){
 		<td>No</td>
 	</tr>
 </table>
+<input type="button" id="downloadTable" value="Download this table as table.csv" />
 </div>
+
+<div class='elements wrapper'>
+	<textarea id='textarea' cols="50" rows="5">
+Some
+multiline
+text
+	</textarea><br />
+<input type="button" id="downloadText" value="Download this text as text.txt" />
+</div>
+
+

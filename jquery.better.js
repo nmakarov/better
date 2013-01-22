@@ -1,3 +1,13 @@
+/*! Better 1.0.0
+* Copyright (c) 2012 Nick Makarov https://github.com/nmakarov
+*
+* Dual licensed under the MIT and GPL licenses:
+*   http://www.opensource.org/licenses/mit-license.php
+*   http://www.gnu.org/licenses/gpl.html
+*//*
+* Description:
+*   A set of jQuery plugins to help simplify common tasks - make a table downloadable, insert a panel etc.
+*/
 ;(function($){
 
 	// some private vars
@@ -38,9 +48,10 @@
 
 ;(function($){
 	$.extend($.better.defaults, {
-		  downloadUrl : ''
+		  downloadUrl : '/bouncefile.php'
 		, downloadType : 'text/plain'
 		, downloadFilename : 'somefile.txt'
+		, downloadMethod : 'bounce' // 'console'
 	});
 
 	$.extend($.better, {
@@ -49,30 +60,37 @@
 				throw ">>> better.download: no parameters provided.";
 			// if a string is passed, it is the data.
 			$.isPlainObject(options) || (options.data = options);
-			var  url  = options.downloadUrl || $.better.defaults.downloadUrl
-				,data = options.data
-				,filename = options.filename || $.better.defaults.filename || 'somefile.txt'
+			var   url  = options.downloadUrl || $.better.defaults.downloadUrl
+				, data = options.data
+				, filename = options.filename || $.better.defaults.filename || 'somefile.txt'
 				, type = options.downloadType || $.better.defaults.downloadType
+				, method = options.downloadMethod || options.method || $.better.defaults.downloadMethod
 				;
-			if ( ! url) throw(">>> better.download: no downloadUrl provided.");
 
-			var $form = $('<form />', {
-				  method : 'post'
-				, action : url
-				, style : 'display:hidden'
-			}).append($('<input />', {
-				  type : 'hidden'
-				, name : 'filename'
-				, value : filename
-			})).append($('<input />', {
-				  type : 'hidden'
-				, name : 'data'
-				, value : data
-			})).append($('<input />', {
-				  type : 'hidden'
-				, name : 'type'
-				, value : type
-			})).appendTo('html').submit().remove();
+			if (method == 'bounce') {
+				if ( ! url) throw(">>> better.download: no downloadUrl provided.");
+
+				var $form = $('<form />', {
+					  method : 'post'
+					, action : url
+					, style : 'display:hidden'
+				}).append($('<input />', {
+					  type : 'hidden'
+					, name : 'filename'
+					, value : filename
+				})).append($('<input />', {
+					  type : 'hidden'
+					, name : 'data'
+					, value : data
+				})).append($('<input />', {
+					  type : 'hidden'
+					, name : 'type'
+					, value : type
+				})).appendTo('html').submit().remove();
+			}
+			else if (method == 'console') {
+				console.log(data);
+			}
 		}
 
 	});
@@ -108,23 +126,59 @@
 		}
 	});
 
-	var transform = function($panel, matrix) {
-		$panel.css({
-			position : 'absolute'
-			, top : matrix.pivotY
-			, left : matrix.pivotX
-		});
-	}
 
 
 /*
 Issues
 
 -	$container should have explicit dimensions set, otherwise outer* functions win't work
--	on resize panels are not following the `stick` guidelines (fix in progress)
+-	fixed: on resize panels are not following the `stick` guidelines (fix in progress)
 -	see how it works with various box model usage - with borders, margins and padding for container and panel
+-	add option `attrs` - hash will be added to the panel as a set of attrs
+-	when a panel is appended to some parent, there might be some complications due to this parent's position settings.
+	// quick hack - parent for the panel insertion is hardcoded as `html`, `parent` is used just to get dimensions.
  */
 
+ 	$.better.plugins.panels = [];
+ 	$.better.plugins.panels.recalc = function() {
+ 		$.each($.better.plugins.panels, function(index, panel){
+ 			var   $panel = panel.panel
+ 				, options = panel.options
+ 				, $container = panel.container
+				, parentWidth = $container.outerWidth(false)
+				, parentHeight = $container.outerHeight(true)
+				, parentLeft = $container.offset().left
+				, parentTop = $container.offset().top
+				, offsets = options.offset ? options.offset.split(' ') : [0,0]
+				, offsetTop = offsets[0] || 0
+				, offsetLeft = offsets[1] || 0
+				, left = +parentLeft + +offsetLeft
+				, top = +parentTop + +offsetTop
+				;
+
+			// left calculations
+			if (options.height == 'inherit')
+				$panel.css('height', parentHeight);
+
+			if (options.stick.match(/right/))
+				left += parentWidth;
+
+			if (options.pivot.match(/right/))
+				left -= $panel.outerWidth(true);
+
+			// top calculations
+			if (options.pivot.match(/middle/))
+				top -= $panel.outerHeight(true)/2;
+
+			$panel.css({
+				  position : 'absolute'
+				, width : $panel.outerWidth()
+				, height : $panel.outerHeight()
+				, top : top
+				, left : left
+			});
+ 		});
+ 	}
 	$.better.plugins.panel = function (that, options) {
 		var $objects = that
 			, ret = [];
@@ -133,34 +187,15 @@ Issues
 		that.each(function(){
 			var $container = $(this)
 				, $panel = options.panel || $("<div />", {class:'panel'})
-				, parentWidth = $container.outerWidth(false)
-				, parentHeight = $container.outerHeight(true)
-				, parentLeft = $container.offset().left
-				, parentTop = $container.offset().top
-				, offsets = options.offset.split(' ')
-				, offsetTop = offsets[0] || 0
-				, offsetLeft = offsets[1] || 0
+				;
+			$panel.appendTo('html');
 
-				, matrix = {
-					  pivotX : +parentLeft + +offsetLeft
-					, pivotY : +parentTop + +offsetTop
-				};
-			$panel.appendTo($container);
-
-			if (options.height == 'inherit')
-				$panel.css('height', parentHeight);
-
-			if (options.stick.match(/right/))
-				matrix.pivotX += parentWidth;
-
-			if (options.pivot.match(/right/))
-				matrix.pivotX -= $panel.outerWidth(true);
-
-			if (options.pivot.match(/middle/))
-				matrix.pivotY -= $panel.outerHeight(true)/2;
-
-
-			transform($panel, matrix);
+			$.better.plugins.panels.push({
+				  panel : $panel
+				, container : $container
+				, options : options
+			});
+			$.better.plugins.panels.recalc();
 
 			// ret.push($panel.get(0));
 			ret.push($.better.defaults.panel.returnPanel ? $panel.get(0) : $container.get(0));
@@ -172,8 +207,10 @@ Issues
 		return $objects;
 	}
 
+	// if window resized, containers will resize as well, specifically, if stick == 'right/bottom'.
+	// panel positions should be adjusted accordingly.
 	$(window).resize(function(event){
-		console.log('Resized');
+		$.better.plugins.panels.recalc();
 	});
 
 
