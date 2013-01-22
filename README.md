@@ -76,9 +76,9 @@ Other options are:
 
 -	`height` - what height the panel will become. `inherit` - make it the same height as the container.
 
-- 	`panel` - (like `panel : $("<div />", { text : "abcdef" })` ) - use this panel instead of default one.
+- 	`panel` - (like `panel : $("<div />", { text : "abcdef" })` ) - use this panel instead of a default one.
 
 -	`returnPanel` (default `true`) - return the new panel instead of container (override default jQuery behavior).
 
 
-Function `$.better.plugins.panels.recalc()` is called when DOM elements resize, but if you modify your panels after they are created (say, add children to them and set panel.width=auto) yuo should call this function yourself.
+Function `$.better.plugins.panels.recalc()` is called when DOM elements resize, but if you modify your panels after they are created (say, add children to them and set panel.width=auto) you should call this function yourself.
