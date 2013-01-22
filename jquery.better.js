@@ -172,8 +172,8 @@ Issues
 
 			$panel.css({
 				  position : 'absolute'
-				, width : $panel.outerWidth()
-				, height : $panel.outerHeight()
+				, width : $panel.width()
+				, height : $panel.height()
 				, top : top
 				, left : left
 			});
