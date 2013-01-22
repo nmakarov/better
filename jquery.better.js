@@ -1,9 +1,14 @@
-/*! Better 1.0.0
-* Copyright (c) 2012 Nick Makarov https://github.com/nmakarov
+/*
+* Better 1.0.0 - jQuery Plugins
+* https://github.com/nmakarov
+* Copyright (c) 2012 Nick Makarov 
 *
 * Dual licensed under the MIT and GPL licenses:
 *   http://www.opensource.org/licenses/mit-license.php
 *   http://www.gnu.org/licenses/gpl.html
+*
+* Date: 2013-01-22
+* 
 *//*
 * Description:
 *   A set of jQuery plugins to help simplify common tasks - make a table downloadable, insert a panel etc.
@@ -136,12 +141,26 @@ Issues
 -	add option `attrs` - hash will be added to the panel as a set of attrs
  */
 
+	// an array of all created panels:
  	$.better.plugins.panels = [];
+
+ 	/**
+ 	 * Recalc dimensions for all panels (called by `onresize` handler)
+ 	 * @return void
+ 	 */
  	$.better.plugins.panels.recalc = function() {
  		$.each($.better.plugins.panels, function(index, panel){
 			panel.recalc();
  		});
  	}
+
+ 	/**
+ 	 * Main .better.panel plugin.
+ 	 * 
+ 	 * @param  {[jQuery]} that    Whatever was selected by jQuery selector
+ 	 * @param  {hash} options     Plugin options
+ 	 * @return {[jQuery]}         Original set of jQuery els or a reference to the newly created panel.
+ 	 */
 	$.better.plugins.panel = function (that, options) {
 		var $objects = that
 			, ret = [];
@@ -208,6 +227,11 @@ Issues
 		$.better.plugins.panels.recalc();
 	});
 
+
+
+	$.better.plugins.table = function(that, options) {
+
+	}
 
 
 })(jQuery);
