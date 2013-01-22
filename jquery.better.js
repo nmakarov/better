@@ -131,58 +131,20 @@
 /*
 Issues
 
--	$container should have explicit dimensions set, otherwise outer* functions win't work
--	fixed: on resize panels are not following the `stick` guidelines (fix in progress)
+-	$container should have explicit dimensions set, otherwise outer* functions won't work
 -	see how it works with various box model usage - with borders, margins and padding for container and panel
 -	add option `attrs` - hash will be added to the panel as a set of attrs
--	when a panel is appended to some parent, there might be some complications due to this parent's position settings.
-	// quick hack - parent for the panel insertion is hardcoded as `html`, `parent` is used just to get dimensions.
  */
 
  	$.better.plugins.panels = [];
  	$.better.plugins.panels.recalc = function() {
  		$.each($.better.plugins.panels, function(index, panel){
- 			var   $panel = panel.panel
- 				, options = panel.options
- 				, $container = panel.container
-				, parentWidth = $container.outerWidth(false)
-				, parentHeight = $container.outerHeight(true)
-				, parentLeft = $container.offset().left
-				, parentTop = $container.offset().top
-				, offsets = options.offset ? options.offset.split(' ') : [0,0]
-				, offsetTop = offsets[0] || 0
-				, offsetLeft = offsets[1] || 0
-				, left = +parentLeft + +offsetLeft
-				, top = +parentTop + +offsetTop
-				;
-
-			// left calculations
-			if (options.height == 'inherit')
-				$panel.css('height', parentHeight);
-
-			if (options.stick.match(/right/))
-				left += parentWidth;
-
-			if (options.pivot.match(/right/))
-				left -= $panel.outerWidth(true);
-
-			// top calculations
-			if (options.pivot.match(/middle/))
-				top -= $panel.outerHeight(true)/2;
-
-			$panel.css({
-				  position : 'absolute'
-				, width : $panel.outerWidth()
-				, height : $panel.outerHeight()
-				, top : top
-				, left : left
-			});
+			panel.recalc();
  		});
  	}
 	$.better.plugins.panel = function (that, options) {
 		var $objects = that
 			, ret = [];
-
 
 		that.each(function(){
 			var $container = $(this)
@@ -190,14 +152,47 @@ Issues
 				;
 			$panel.appendTo('html');
 
-			$.better.plugins.panels.push({
-				  panel : $panel
-				, container : $container
-				, options : options
-			});
-			$.better.plugins.panels.recalc();
+			$panel.recalc = function() {
+				console.log($(this).text() + ' recalculating!');
+	 			var   parentWidth = $container.outerWidth(false)
+					, parentHeight = $container.outerHeight(true)
+					, parentLeft = $container.offset().left
+					, parentTop = $container.offset().top
+					, offsets = options.offset ? options.offset.split(' ') : [0,0]
+					, offsetTop = offsets[0] || 0
+					, offsetLeft = offsets[1] || 0
+					, left = +parentLeft + +offsetLeft
+					, top = +parentTop + +offsetTop
+					;
 
-			// ret.push($panel.get(0));
+				// left calculations
+				if (options.height == 'inherit')
+					$panel.css('height', parentHeight);
+
+				if (options.stick.match(/right/))
+					left += parentWidth;
+
+				if (options.pivot.match(/right/))
+					left -= $panel.outerWidth(true);
+
+				// top calculations
+				if (options.pivot.match(/middle/))
+					top -= $panel.outerHeight(true)/2;
+
+				// make sure dimensions are set:
+				$panel.css({
+					  position : 'absolute'
+					, width : $panel.width()
+					, height : $panel.height()
+					, top : top
+					, left : left
+				});
+			}
+
+			$panel.recalc();
+
+			$.better.plugins.panels.push($panel);
+
 			ret.push($.better.defaults.panel.returnPanel ? $panel.get(0) : $container.get(0));
 		});
 

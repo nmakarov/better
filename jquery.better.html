@@ -69,13 +69,13 @@ $(function(){
 		  stick : 'top right'
 		, pivot : 'middle right'
 		// , offset : '0 -25'
-	});//.css('background-color', 'green');
+	}).text('panel1');//.css('background-color', 'green');
 	$("#tableToExport thead").better('panel', {
 		  stick : 'top right'
 		, pivot : 'top right'
 		, offset : '0 0'
 		, height : 'inherit'
-	});//.css('background-color', 'green');
+	}).text('panel2');//.css('background-color', 'green');
 	var $s = $("#fieldname").better('panel', {
 		  stick : 'top left'
 		, pivot : 'top left'
@@ -84,7 +84,7 @@ $(function(){
 		, panel : $("<div />", {style: 'width:25px;height:10px;background-color:red;overflow:auto'})
 	});//.css('background-color', 'green');
 
-	$s.text('abcdefg');
+	$s.text('panel3');
 	$s.css({width:'auto'});
 	$.better.plugins.panels.recalc();
 
