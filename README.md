@@ -3,28 +3,41 @@ better
 
 Set of quick and handy jQuery plugins
 
+Make sure these are present in the HTML:
+
+~~~javascript
+<script type="text/javascript" src="jquery.js">
+<script type="text/javascript" src="jquery.better.js">
+~~~
+
 ## $.better.download
 
 Trick the browser to download anything prepared by javascript or even a table
 
+Two ways to use it:
 
-### Quick start
+-	as a selector function:
 
-~~~javascript
-<script type="text/javascript" src="jquery.js"></script>
-<script type="text/javascript" src="jquery.better.js"></script>
+	~~~ javascript
+		<table>
+			<tr>
+				...
+		</table>
 
-<script type="text/javascript">
-	$.better.defaults.downloadUrl = 'bouncefile.php';
+		<script type="text/javascript">
+			$.better.defaults.downloadUrl = 'bouncefile.php';
 
-	// Save visible lines of any table as a CSV file:
-	$("#tableToExport").better('download', {filename:'data2.csv'});
+			// Save visible lines of any table as a CSV file:
+			$("#tableToExport").better('download', {filename:'data.csv'});
+		</script>
+	~~~
 
-	// Save some arbitrary text:
-	$.better.download({data : 'some text', type : 'text/csv', filename : 'text.csv'});
+-	as a standalone function:
 
-</script>
-~~~
+	~~~ javascript
+		var sometext = 'some text';
+		$.better.download({data : sometext, type : 'text/plain', filename : 'text.txt'});
+	~~~
 
 ### Options / settings
 
