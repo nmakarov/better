@@ -125,12 +125,6 @@
 		});
 	};
 
-	$.extend($.better.defaults, {
-		panel : {
-			returnPanel : true
-		}
-	});
-
 
 
 /*
@@ -140,6 +134,12 @@ Issues
 -	see how it works with various box model usage - with borders, margins and padding for container and panel
 -	add option `attrs` - hash will be added to the panel as a set of attrs
  */
+
+	$.extend($.better.defaults, {
+		panel : {
+			returnPanel : true
+		}
+	});
 
 	// an array of all created panels:
  	$.better.plugins.panels = [];
@@ -172,7 +172,6 @@ Issues
 			$panel.appendTo('html');
 
 			$panel.recalc = function() {
-				console.log($(this).text() + ' recalculating!');
 	 			var   parentWidth = $container.outerWidth(false)
 					, parentHeight = $container.outerHeight(true)
 					, parentLeft = $container.offset().left
@@ -228,10 +227,159 @@ Issues
 	});
 
 
+	/*
+		table attributes:
+
+		header attributes:
+
+		-	lookup - JSON string (like '{"0":"No","1":"Yes"}'). If set, column data will be transformed according to this rule.
+	 */
+
+	$.extend($.better.defaults, {
+		table : {
+			  headerSelector : "th"
+		}
+	});
 
 	$.better.plugins.table = function(that, options) {
+		return that.each(function(){
+			var   $table = $(this)
+				, t = time()
+				, totals = {}
+				, options = $.extend({}, $.better.defaults.table, options);
 
+			// see if table attributes are set
+			$.each(options, function(index){
+				if ($table.attr(index))
+					options[index] = $table.attr(index);
+			});
+
+
+
+			// walk the headers and make adjustments to the data
+			$table.find(options.headerSelector).each(function(index){
+				var $header = $(this);
+
+				if ($header.attr("lookup")) {
+					var lookup = $.parseJSON($(this).attr("lookup"));
+					$(this).data('lookup', lookup);
+					$('tbody tr > td:nth-child('+(index+1)+')',$table).each(function(){
+						// get the cell text...
+						var cellData = $(this).text();
+						// save it as `cellData` data attribute and transform the cell contents
+						$(this).html(lookup[cellData]).data('cellData', cellData);
+					});					
+				}
+
+
+				if ($header.attr("filter")) {
+					$header.get(0).filter = function(action, values){
+						action = action ? action.toLowerCase() : 'clear';
+						values = [].concat(values);
+						switch (action) {
+
+							case 'apply' : 
+							$table.find("tbody tr").each(function(){
+
+								var v = $("td:eq("+index+")", this).text();
+								if ( values.indexOf(v))
+									$(this).hide();
+							});
+							break;
+
+							// clear filters
+							default : $table.find("tbody tr").show(); break;
+						}
+						calcTotals();
+						return '123';
+					};
+				}
+
+				if ($header.attr('total')) {
+					var total = $header.attr('total');
+						totals[index] = total;
+				}
+			});
+
+			function calcTotals() {
+				var $row = $("<tr />");
+
+				$table.find(options.headerSelector).each(function(index){
+					var   t = totals[index]
+						, res = 0;
+
+					try {
+						// try JSON.
+						t=JSON.parse(t);
+
+						// It is JSON indeed, walk each column
+						$table.find("tbody").find("td:nth-child("+(index+1)+")").each(function(){
+							if ($(this).parent().css('display') == 'none')
+								return;
+
+							switch (t.func) {
+								case 'sum' : res += parseInt($(this).text()); break;
+								default : res += 1;
+							}
+						});
+						$row.append($("<td />", {html:t.format.sprintf(res)}));
+					} catch (e) {
+						// JSON failed - so it is either an empty total or some plain text:
+						$row.append($("<td />", {html:t}));
+					}
+
+				});
+				$table.find("tfoot tr").remove();
+				$table.find("tfoot").append($row);
+
+			}
+
+			// deal with totals (if any)
+			if ( ! $.isEmptyObject(totals)) {
+				// create a `tfoot` element if none:
+				if ($table.find("tfoot").length == 0)
+					$table.append($("<tfoot/>").append($("<tr />")));
+				
+				calcTotals();
+			}
+			 
+			console.log("elapsed: " + (time()-t));
+		});
 	}
 
 
+	function time () {
+		var d = new Date();
+		return d.getTime();
+	}
+
+// fix for IE < 8
+if(!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function(needle) {
+        for(var i = 0; i < this.length; i++) {
+            if(this[i] === needle) {
+                return i;
+            }
+        }
+        return -1;
+    };
+}
+
+if ( ! String.prototype.sprintf) {
+	String.prototype.sprintf = function() {
+		var args = Array.prototype.slice.call( arguments );
+		return this.replace(/%(i)/g, function (match, number){
+			return args.shift();
+		});
+	}
+}
+
+// if ( ! Object.prototype.isEmpty1) {
+// 	Object.prototype.isEmpty1 = function() {
+// 		var empty=true;
+// 		for (var i in this)
+// 			if (this.hasOwnProperty(i)) {empty=false;break;}
+// 		return empty;
+// 	}
+// }
 })(jQuery);

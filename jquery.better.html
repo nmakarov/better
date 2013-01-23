@@ -35,6 +35,13 @@
 	input {
 		margin-top:5px;
 	}
+
+	tfoot tr {
+		font-weight : bold;
+	}
+	tfoot td {
+		border-top : 1px solid #ccc;
+	}
 </style>
 
 
@@ -130,5 +137,57 @@ text
 	</textarea><br />
 <input type="button" id="downloadText" value="Download this text as text.txt" />
 </div>
+
+<div class='elements wrapper'>
+<table id='table1' style='width:80%'>
+	<tr>
+		<th field="project">Project</th>
+		<th field="progress">Progress</th>
+		<th field="status">Status</th>
+		<th field="managed">Managed</th>
+	</tr>
+</table>
+</div>
+
+<script type="text/javascript">
+
+	// populate table
+	for (var i=1; i<=50; i+=1) {
+		$("#table1").append(
+			$("<tr />").attr("id", i)
+				.append($("<td />",{text : "Project "+i}))
+				.append($("<td />",{text : Math.round(Math.random() * 100)}).css('text-align','right'))
+				.append($("<td />",{text : Math.round(Math.random())}))
+				.append($("<td />",{text : Math.floor(Math.random() * 5)}))
+		);
+	}
+
+	// set field attributes
+	$("#table1").find("th[field='project']").attr({
+		total : JSON.stringify({func : "count", format : "Count: %i"})
+	});
+
+	$("#table1").find("th[field='progress']").attr({
+		total : JSON.stringify({func : "sum", format : "Total: <div style='float:right'>%i</div>"})
+	});
+
+	$("#table1").find("th[field='status']").attr({
+		  lookup : '{"0":"No","1":"Yes"}'
+		, total : "Total"
+	});
+
+	$("#table1").find("th[field='managed']").attr({
+		  lookup : '{"0":"alpha","1":"beta", "2":"gamma", "3":"delta", "4":"epsilon"}'
+		, filter : "lookup"
+	});
+
+	$("#table1").better('table');
+
+	res = $("#table1").find("th[field='managed']").get(0).filter('apply','alpha');
+	// $("#table1").find("th[field='managed']").get(0).applyFilter();
+
+
+</script>
+
 
 
