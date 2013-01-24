@@ -313,6 +313,7 @@ Issues
 						});
 						break;
 					case "text" :
+						$cell.data('cellData',$cell.text());
 						addInput($cell);
 				}
 
@@ -329,17 +330,17 @@ Issues
 					for (var i in props) {
 						var   k = props[i]
 							, v = $cell.css(k);
-						console.log('k:'+k+' v:'+v);
+						// console.log('k:'+k+' v:'+v);
 						saved[k] = $cell.css(k);
 					}
 
-					console.log(saved);
+					// console.log(saved);
 
 					$input.appendTo($cell.empty());
 					for (var i in props) {
 						var   k = props[i]
 							, v = $cell.css(k);
-						console.log('k:'+k+' v:'+v);
+						// console.log('k:'+k+' v:'+v);
 					}
 
 					for (k in props) {
@@ -351,8 +352,6 @@ Issues
 			}
 
 			function stateAdvance (state, states) {
-				console.log(state);
-				console.log(states);
 				var first, newState, found=false;
 				for (var k in states) {
 					if ( ! first)
@@ -368,6 +367,18 @@ Issues
 			}
 
 			function cancelEdit ($cell) {
+				var fieldIndex = $cell.index()
+					, $th = $("thead th", $table).eq(fieldIndex)
+					, type = $th.attr("editable")
+					, currentData = $cell.data('cellData') || 'abc'
+
+				console.log('cancelEdit - ' + currentData);
+
+				if (type == 'text') {
+					console.log('here');
+					$cell.html(currentData);
+				}
+
 				$cell.removeClass('active');
 			}
 
