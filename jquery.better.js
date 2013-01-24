@@ -320,7 +320,10 @@ Issues
 			}
 
 			function addInput ($cell) {
-				var   $input = $("<input />", {type:"text", value:$cell.text()})
+				var   $input = $("<div />")
+						.height($cell.height())
+						.css({padding:'', margin:''})
+						.append($("<input />", {type:"text", value:$cell.text()}).css({padding:'', margin:''}))
 					, saved = {}
 					, props = ['width', 'height', 'margin', 'padding', 'border']
 					;
