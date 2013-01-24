@@ -213,6 +213,8 @@ text
 		);
 	}
 
+	$("#table1").attr('submitUrl', "save.php");
+
 	// set field attributes
 	$("#table1").find("th[field='project']").attr({
 		  total : JSON.stringify({func : "count", format : "Count: %i"})

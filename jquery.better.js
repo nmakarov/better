@@ -268,20 +268,29 @@ Issues
 
 				var   $cell = $(this)
 					, $th = $("thead th", $table).eq($cell.index())
+					, $activeCell = getActiveCell();
 					;
 
 				// if a cell is in non-editable column, let the window.onclick handle the `cancelEdit`
 				if ( ! $th.attr('editable'))
 					return true;
 
-				// if the cell is already active, do the edit
-				if ($cell.hasClass("active"))
-					startEdit($cell);
+				if ($cell.hasClass('active'))
+					console.log('already active');
 				else {
-					// reactivate previously active cell, mark this one as active
-					cancelEdit(getActiveCell());
-					$cell.addClass('active');
+					// the cell might abort the cancelEdit
+					if ( ! cancelEdit($activeCell))
+						return;
 				}
+
+				// if the cell is already active, do the edit
+				// if ($cell.hasClass("active"))
+					startEdit($cell, $activeCell);
+					$cell.addClass('active');
+				// else {
+					// reactivate previously active cell, mark this one as active
+					// cancelEdit(getActiveCell());
+				// }
 				return false;
 			});
 
@@ -295,34 +304,74 @@ Issues
 				return $table.find("tbody td[class='active']");
 			}
 
-			function startEdit ($cell) {
+			function startEdit ($cell, $activeCell) {
 				var fieldIndex = $cell.index()
 					, $th = $("thead th", $table).eq(fieldIndex)
 					, type = $th.attr("editable")
 					, lookup = $th.data('lookup')
 					, currentData = $cell.data('cellData')
 					, newData = null
+					, hasActiveCell = $activeCell.length>0
 					;
+
+				// if table just activated, do not do any edit
+				if ( ! hasActiveCell)
+					return;
 
 				switch (type) {
 					case "state" :
 						newData = stateAdvance(currentData, lookup);
-						$cell.data('cellData', newData);
-						$cell.fadeOut('fast', function(){
-							$cell.html(lookup[newData]).fadeIn('fast');
-						});
+						submitEdit($cell, newData, lookup[newData])
 						break;
 					case "text" :
 						$cell.data('cellData',$cell.text());
 						addInput($cell);
 				}
+			}
 
+			function submitEdit ($cell, newData, newDisplay) {
+				var   fieldIndex = $cell.index()
+					, $th = $("thead th", $table).eq(fieldIndex)
+					, field = $th.attr('field')
+					, tableId = $table.attr('id')
+					, rowId = $cell.parent().attr('id')
+					, url = $table.attr('submitUrl')
+					;
+				$.post(url, {
+					  tableId : tableId
+					, rowId : rowId
+					, field : field
+					, value : newData
+				}, function(data) {
+
+					var res     = data.split(':',2),
+						status  = res[0],
+						message = res[1];
+
+
+					console.log('status: `' + status + '`');
+					console.log('message: ' + message);
+
+					// todo analyze data, if error - throw message
+					if (status == 'ok') {
+						$cell.data('cellData', newData);
+						$cell.fadeOut(50, function(){
+							$cell.html(newDisplay).fadeIn(50);
+						});
+					}
+					else {
+						$cell.html($cell.data('oldData'));
+						return false;
+					}
+
+
+				});
 			}
 
 			function addInput ($cell) {
 				var   $input = $("<div />")
 						.height($cell.height())
-						.css({padding:'', margin:''})
+						.css({padding:'0px', margin:'0px'})
 						.append($("<input />", {type:"text", value:$cell.text()}).css({padding:'', margin:''}))
 					, saved = {}
 					, props = ['width', 'height', 'margin', 'padding', 'border']
@@ -375,7 +424,13 @@ Issues
 					, type = $th.attr("editable")
 					, currentData = $cell.data('cellData') || 'abc'
 
+				// no active cell, do nothing
+				if ($cell.length == 0)
+					return true;
+
 				console.log('cancelEdit - ' + currentData);
+
+				// todo: possibly, display dialog if the new data is unsaved. And return `false` here if edit should continue
 
 				if (type == 'text') {
 					console.log('here');
@@ -383,6 +438,8 @@ Issues
 				}
 
 				$cell.removeClass('active');
+
+				return true;
 			}
 
 			$table.on("edit", function(event, action){
