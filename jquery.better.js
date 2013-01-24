@@ -254,7 +254,180 @@ Issues
 					options[index] = $table.attr(index);
 			});
 
+			// make sure a `thead` element is set:
+			if ($table.find("thead").length == 0) {
+				var $headrow = $("th", $table).parent();
+				$table.prepend($("<thead/>").append($headrow));
+			}
 
+			// editable stuff
+			$table.find("tbody td").on("click", function(){
+				// bail out if the table is not editable:
+				if ( ! $table.hasClass('editable'))
+					return true;
+
+				var   $cell = $(this)
+					, $th = $("thead th", $table).eq($cell.index())
+					;
+
+				// if a cell is in non-editable column, let the window.onclick handle the `cancelEdit`
+				if ( ! $th.attr('editable'))
+					return true;
+
+				// if the cell is already active, do the edit
+				if ($cell.hasClass("active"))
+					startEdit($cell);
+				else {
+					// reactivate previously active cell, mark this one as active
+					cancelEdit(getActiveCell());
+					$cell.addClass('active');
+				}
+				return false;
+			});
+
+			$(window).on("click", function(){
+				// $table.find("tbody td").removeClass('active');
+				// console.log('window click');
+				cancelEdit(getActiveCell());
+			});
+
+			function getActiveCell () {
+				return $table.find("tbody td[class='active']");
+			}
+
+			function startEdit ($cell) {
+				var fieldIndex = $cell.index()
+					, $th = $("thead th", $table).eq(fieldIndex)
+					, type = $th.attr("editable")
+					, lookup = $th.data('lookup')
+					, currentData = $cell.data('cellData')
+					, newData = null
+					;
+
+				switch (type) {
+					case "state" :
+						newData = stateAdvance(currentData, lookup);
+						$cell.data('cellData', newData);
+						$cell.fadeOut('fast', function(){
+							$cell.html(lookup[newData]).fadeIn('fast');
+						});
+						break;
+					case "text" :
+						addInput($cell);
+				}
+
+			}
+
+			function addInput ($cell) {
+				var   $input = $("<input />", {type:"text", value:$cell.text()})
+					, saved = {}
+					, props = ['width', 'height', 'margin', 'padding', 'border']
+					;
+
+					$cell.height($cell.css('height'));
+
+					for (var i in props) {
+						var   k = props[i]
+							, v = $cell.css(k);
+						console.log('k:'+k+' v:'+v);
+						saved[k] = $cell.css(k);
+					}
+
+					console.log(saved);
+
+					$input.appendTo($cell.empty());
+					for (var i in props) {
+						var   k = props[i]
+							, v = $cell.css(k);
+						console.log('k:'+k+' v:'+v);
+					}
+
+					for (k in props) {
+						var   k = props[i]
+						
+						$input.css(k, saved[k]);
+					}
+				// .width($cell.innerWidth()).appendTo($cell.empty());
+			}
+
+			function stateAdvance (state, states) {
+				console.log(state);
+				console.log(states);
+				var first, newState, found=false;
+				for (var k in states) {
+					if ( ! first)
+						first = k;
+					if (found) {
+						newState = k;
+						break;
+					}
+					if (k == state)
+						found = true;
+				}
+				return newState ? newState : first;
+			}
+
+			function cancelEdit ($cell) {
+				$cell.removeClass('active');
+			}
+
+			$table.on("edit", function(event, action){
+				var $cell = getActiveCell();
+				if ($cell.length == 0)
+					return;
+				switch (action) {
+					case "cancel" : cancelEdit($cell); break;
+				}
+			});
+
+
+			// sort rows
+			$table.on('sort', function(event, fieldname, numeric){
+				var fieldIndex = $("thead th[field='"+fieldname+"']", $table).index()
+					, $th = $("thead th", $table).eq(fieldIndex)
+					, numeric = (numeric === 'numeric') || $th.attr("datatype") || false
+					, direction = $th.hasClass('asc') ? 'desc' : 'asc'
+					, res = direction == 'asc' ? -1 : 1
+					, rows = $table.find("tbody tr").get();
+
+				$th.removeClass('asc').removeClass('desc').addClass(direction);
+
+				rows.sort(function(a,b){
+					var   $A = $(a).children('td').eq(fieldIndex)
+						, $B = $(b).children('td').eq(fieldIndex)
+						, keyA = numeric ? parseInt($A.text(),10) : $A.text().toUpperCase()
+						, keyB = numeric ? parseInt($B.text(),10) : $B.text().toUpperCase()
+						;
+						return (keyA < keyB) ? res : res*(-1);
+				});
+
+				$.each(rows, function(index,row){
+					$table.children('tbody').append(row);
+				});
+			});
+
+			$table.on("filter", function(event, fieldname, value, func){
+				var   func = func || "eq"
+					, fieldIndex = $("thead th[field='"+fieldname+"']", $table).index();
+
+				$table.find("tbody tr").show();
+				if ("undefined" !== typeof fieldname) {
+					$table.find("tbody tr").each(function(){
+
+						var v = $("td:eq("+fieldIndex+")", this).text();
+						var cond = 
+							func == "eq" ? [].concat(value).indexOf(v) !== -1 :
+							func == "gte" ? parseInt(v,10) >= parseInt(value,10) :
+							typeof func == "function" ? func(value, v) :
+							true
+							;
+						if ( ! cond )
+							$(this).hide();
+					});
+				}
+				calcTotals();
+
+			});
 
 			// walk the headers and make adjustments to the data
 			$table.find(options.headerSelector).each(function(index){
@@ -272,17 +445,26 @@ Issues
 				}
 
 
+				// todo: filter should be assigned to the table, not individual headers.
+				// that would allow for multi-column filters. 
+				// Additional argument to be passed - field name or field index
+				// 
 				if ($header.attr("filter")) {
-					$header.get(0).filter = function(action, values){
+					$header.get(0).filter = function(action, values, func){
 						action = action ? action.toLowerCase() : 'clear';
-						values = [].concat(values);
+						func = func || "eq";
 						switch (action) {
 
 							case 'apply' : 
 							$table.find("tbody tr").each(function(){
 
 								var v = $("td:eq("+index+")", this).text();
-								if ( values.indexOf(v))
+								var cond = 
+									func == "eq" ? [].concat(values).indexOf(v) !== -1 :
+									func == "gte" ? parseInt(v,10) >= parseInt(values,10) :
+									true
+									;
+								if ( ! cond )
 									$(this).hide();
 							});
 							break;

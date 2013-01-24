@@ -2,6 +2,9 @@
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="jquery.better.js"></script>
 
+<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js"></script>
+
 <style type="text/css">
 	.wrapper {
 		border: 1px solid #ccc;
@@ -30,6 +33,17 @@
 		width:100px;
 		height:50px;
 		border : 1px solid black;
+	}
+
+	td.active {
+		border: 1px dotted #aaa;
+		background-color: #ccc;
+	}
+
+	/* todo: make the table body scrollable (sub-table in a div) */
+	#table1 tbody {
+		height:200px;
+		overflow-y:scroll;
 	}
 
 	input {
@@ -66,11 +80,6 @@ $(function(){
 			, type : 'text/plain'
 		});
 	});
-	// $("#tableToExport").download({filename:'data.csv'});
-	// $("#tableToExport").test();
-	
-	// by default:
-	// $.better.defaults.panel.returnPanel = false;
 	
 	$("#wrapper").better('panel', {
 		  stick : 'top right'
@@ -139,7 +148,20 @@ text
 </div>
 
 <div class='elements wrapper'>
-<table id='table1' style='width:80%'>
+	<label for="managedFilter">Filter `Managed`:</label>
+	<select id="managedFilter">
+		<option value="">-none-</option>
+		<option value="alpha">alpha</option>
+		<option value="beta">beta</option>
+		<option value="alpha beta">alpha and beta</option>
+	</select>
+
+	<label for="progressFilter">Display `Progress` greater than:</label>
+	<input id="progressFilter" type="text" value="0" size="5">
+	<br />
+	<input class="button" id="projectFilter" type="button" value="Display `Project 3*`">
+	<input class="button" id="toggleEditable" type="button" value="Make editable" style="width:150px">
+<table id='table1' style='width:80%' class="table table-condensed">
 	<tr>
 		<th field="project">Project</th>
 		<th field="progress">Progress</th>
@@ -151,7 +173,36 @@ text
 
 <script type="text/javascript">
 
-	// populate table
+	$("#toggleEditable").toggle(function(){
+		$(this).val("Disable editable");
+		$("#table1").addClass("editable");
+	}, function(){
+		$(this).val("Make editable");
+		$("#table1").removeClass("editable");
+	});
+
+	$("#managedFilter").on('change', function(){
+		var val = $(this).val();
+		if ( ! val)
+			$("#table1").trigger('filter');
+		else {
+			if (val.indexOf(" ") !== -1) val = val.split(" ");
+			$("#table1").trigger('filter', ["managed", val]);
+		}
+	});
+	$("#progressFilter").on('change', function(){
+		var val = parseInt($(this).val());
+		if (isNaN(val))
+			val = 0;
+		$(this).val(val);
+
+		$("#table1").trigger('filter', ["progress", val, 'gte']);
+	});
+	$("#projectFilter").on('click', function(){
+		$("#table1").trigger('filter', ["project", NaN, function(val, v){return /Project 3\d/.test(v);}]);
+	});
+
+	// populate the table
 	for (var i=1; i<=50; i+=1) {
 		$("#table1").append(
 			$("<tr />").attr("id", i)
@@ -164,11 +215,16 @@ text
 
 	// set field attributes
 	$("#table1").find("th[field='project']").attr({
-		total : JSON.stringify({func : "count", format : "Count: %i"})
-	});
+		  total : JSON.stringify({func : "count", format : "Count: %i"})
+		, editable : "text"
+	}).css('width','250px');
 
 	$("#table1").find("th[field='progress']").attr({
-		total : JSON.stringify({func : "sum", format : "Total: <div style='float:right'>%i</div>"})
+		  total : JSON.stringify({func : "sum", format : "Total: <div style='float:right'>%i</div>"})
+		, filter : "gt"
+	}).click(function(){
+		// $("#table1").trigger('sort', ['progress', 'numeric']);
+		$("#table1").trigger('sort', ['progress', 'numeric']);
 	});
 
 	$("#table1").find("th[field='status']").attr({
@@ -179,11 +235,13 @@ text
 	$("#table1").find("th[field='managed']").attr({
 		  lookup : '{"0":"alpha","1":"beta", "2":"gamma", "3":"delta", "4":"epsilon"}'
 		, filter : "lookup"
+		, editable : "state" // dropdown | text (default) 
+	}).click(function(){
+		$("#table1").trigger('sort', 'managed');
 	});
 
 	$("#table1").better('table');
 
-	res = $("#table1").find("th[field='managed']").get(0).filter('apply','alpha');
 	// $("#table1").find("th[field='managed']").get(0).applyFilter();
 
 
